@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/css/bootstrap.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Asap&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+    <style>
+        body {
+            font-family: 'Asap', sans-serif;
+            background-color: #0d0c33; 
+            color: #ececff;
+            padding: 20px;
+        }
+        .card {
+            background-color: #403cff; 
+            color: #ffffff; 
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .card-title {
+            color: #ffffff; /* Yellow title color */
+        }
+        .form-control {
+            background-color: #0d0c33; 
+            color: #ececff; 
+            border-color: #201e80; 
+        }
+        .btn-primary {
+            background-color: #201e80; 
+            border-color: #201e80; 
+            margin-top: 10px;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3; 
+            border-color: #0056b3; 
+        }
+    </style>
+    <title>Create Event</title>
+</head>
+<body>
+    
+    {% include "partials/_nav.html" %}
+    {% if user.is_staff %}
+    <div class="container mt-5">
+        <div class="card">
+            <h2 class="card-title">Create Event</h2>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div id="map"></div>
+                <button type="submit" class="btn btn-primary mt-3">Create Event</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <h1>NO PERMISSION TO CREATE EVENT</h1>
+    {% endif %}
+    <script>
+        var map = L.map('map').setView([38.9637, 35.2433], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var marker;
+
+        function onMapClick(e) {
+            if (marker) {
+                marker.setLatLng(e.latlng);
+            } else {
+                marker = L.marker(e.latlng).addTo(map);
+            }
+            document.getElementById('id_enlem').value = e.latlng.lat;
+            document.getElementById('id_boylam').value = e.latlng.lng;
+        }
+
+        map.on('click', onMapClick);
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/js/bootstrap.min.js"></script>
+</body>
+</html>

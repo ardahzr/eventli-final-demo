@@ -1,0 +1,92 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-dark custom-navbar-color">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <img src="{% static 'logo.png' %}" alt="Logo" height="50" class="d-inline-block align-text-top">
+            <span class="ms-2">eventli</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/etkinlikler">Events</a>
+                </li>
+            
+                <li class="nav-item">
+                    <a class="nav-link" href="/about">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/contact">Contact</a>
+                </li>
+            </ul>
+            
+            <form class="d-flex navbar-nav" action="{% url 'search' %}" method="GET">
+                <input class="form-control me-1" type="text" name="q" placeholder="Search">
+                <button class="btn btn-secondary" type="submit">Search</button>
+                <li class="nav-item dropdown"> 
+                    <a class="nav-link dropdown-toggle" href="#" role="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if request.GET.category %}
+                            {% for category in categories %}
+                                {% if category.id|stringformat:"s" == request.GET.category %}
+                                    {% if category.level == 1 %}
+                                        {{ category.name }}
+                                    {% else %}
+                                        {{ category.parent.name }}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            City
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for category in categories %}
+                            {% if category.level == 1 %}
+                                <li><a class="dropdown-item" href="?category={{ category.id }}">{{ category.name }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </li>
+                <ul class="navbar-nav ms-2"> 
+                    {% if user.is_authenticated %}
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'profile' %}">Profile</a>
+                    </li>
+                    {% else %}
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'register' %}">Register</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Login</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<style>
+    .custom-navbar-color {
+        background-color: #060619; 
+    }
+
+    .navbar-brand img {
+        height: 60px; 
+    }
+
+    .navbar-brand span {
+        display: inline-block;
+    }
+</style>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+
+
+</head>

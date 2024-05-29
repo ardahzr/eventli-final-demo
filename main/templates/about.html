@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/css/bootstrap.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Asap&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Asap', sans-serif;
+            background-color: #0d0c33; 
+            color: #ececff; 
+        }
+        .card {
+            background-color: #403cff; 
+            color: #ffffff; 
+        }
+        .card-title {
+            color: #ffffff; 
+        }
+        .btn-primary {
+            background-color: #201e80; 
+            border-color: #201e80; 
+        }
+        .btn-primary:hover {
+            background-color: #0056b3; 
+            border-color: #0056b3; 
+        }
+    </style>
+    <title>Eventli | {% block page_title %}Events{% endblock page_title %}</title>
+</head>
+<body>
+    {% load static %}
+    <!-- Navbar -->
+    {% include "partials/_nav.html" %}
+
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">About Us</h2>
+                <p class="card-text">We are a trio of passionate computer engineering students driven by a thirst for knowledge. Through our innovative application, we empower university students and event enthusiasts to effortlessly discover and engage with a myriad of activities.</p>
+                <p class="card-text"></p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/js/bootstrap.min.js"></script>
+</body>
+</html>

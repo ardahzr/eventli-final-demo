@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/css/bootstrap.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Asap&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Asap', sans-serif;
+            background-color: #0d0c33; 
+            color: #ececff; 
+        }
+        .card {
+            background-color: #403cff; 
+            color: #ffffff; 
+        }
+        .card-title {
+            color: #ffffff; 
+        }
+        .btn-primary {
+            background-color: #201e80; 
+            border-color: #201e80; 
+        }
+        .btn-primary:hover {
+            background-color: #0056b3; 
+            border-color: #0056b3; 
+        }
+    </style>
+    <title>Eventli | {% block page_title %}Events{% endblock page_title %}</title>
+</head>
+<body>
+    {% load static %}
+    <!-- Navbar -->
+    {% include "partials/_nav.html" %}
+
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Welcome, {{ user.username }}</h2>
+                <p class="card-text">Email: {{ user.email }}</p>
+                <p class="card-text">First Name: {{ user.first_name }}</p>
+                <p class="card-text">Last Name: {{ user.last_name }}</p>
+                <a href="{% url 'logout' %}" class="btn btn-primary">Logout</a>
+                
+                    <a id="createEventButton" href="{% url 'create_event' %}" class="btn btn-primary btn-lg">Create New Event <i class="bi bi-plus"></i></a>
+                    <div id="alertMessage" class="alert alert-warning mt-3" style="display: none;" role="alert">
+                        You don't have permission to create events!
+                    </div>
+                </div>
+                
+                <script>
+                    // Function to show alert message for 5 seconds
+                    function showAlert() {
+                        var alertMessage = document.getElementById("alertMessage");
+                        alertMessage.style.display = "block";
+                        setTimeout(function(){
+                            alertMessage.style.display = "none";
+                        }, 5000);
+                    }
+                
+                    // Check if the user is not staff, then show alert message when button clicked
+                    var createEventButton = document.getElementById("createEventButton");
+                    createEventButton.addEventListener("click", function(event){
+                        event.preventDefault(); // Prevent the default behavior of the link
+                        if ("{{ user.is_staff }}" !== "True") {
+                            showAlert();
+                        } else {
+                            // If user is staff, proceed to the create event page
+                            window.location.href = createEventButton.href;
+                        }
+                    });
+                </script>
+            </div>
+            
+        </div>
+        
+        <div class="container mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Registered Events</h2>
+                    <div class="row">
+                        {% if user.etkinlikkatilim_set.all %}
+                            {% for katilim in user.etkinlikkatilim_set.all %}
+                                <div class="col-md-6">
+                                    <div class="card" style="background-color: #201e80;">
+                                        <div class="card-body">
+                                            <h5 class="card-title mb-0">
+                                                <a href="{% url 'etkinlik_detay' katilim.etkinlik.slug %}" style="color: #ffffff; text-decoration: none;">
+                                                    {{ katilim.etkinlik.title }}
+                                                </a>
+                                            </h5>
+                                            <p class="card-text text-muted">Registration Date: {{ katilim.kayit_tarihi }}</p>
+                                            <div class="d-flex">
+                                                <form method="post" action="{% url 'delete_etkinlik_katilim' katilim.etkinlik.slug %}" class="me-2">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger">Cancel Registration</button>
+                                                </form>
+                                                {% if user.is_staff %}
+                                                    <form method="post" action="{% url 'delete_event' katilim.etkinlik.slug %}" class="me-2">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">Delete Event</button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %} 
+                            <p class="text-center">You are not registered for any events. Let's join some events <a href="{% url 'etkinlikler' %}" class="btn btn-primary">here</a>.</p>
+                        {% endif %}
+                        
+                    </div>
+                </div>
+            </div>
+            {% if user.is_staff %}
+            <div class="container mt-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Your Events</h2>
+                        <div class="row row-cols-1 row-cols-md-3 g-4">
+                            {% for etkinlik in user.created_events.all %}
+                                <div class="col">
+                                    <div class="card h-100" style="background-color: #201e80;">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ etkinlik.title }}</h5>
+                                            <p class="card-text">Date: {{ etkinlik.date }}</p>
+                                            <p class="card-text">Address: {{ etkinlik.adress }}</p>
+                                            <p class="card-text">Description: {{ etkinlik.description }}</p>
+                                            <a href="{% url 'etkinlik_detay' etkinlik.slug %}" class="btn btn-primary">Details</a>
+                                            <a href="{% url 'etkinlik_duzenle' etkinlik.slug %}" class="btn btn-primary">Edit</a>
+                                            <form method="post" action="{% url 'delete_event' etkinlik.slug %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">Delete Event</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% endif %}
+            
+        </div>
+    </div>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/js/bootstrap.min.js"></script>
+</body>
+</html>

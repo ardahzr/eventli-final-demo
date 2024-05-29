@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/css/bootstrap.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Asap&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 350px;
+            width: 100%;
+        }
+    </style>
+    <style>
+        .star-rating {
+            direction: rtl;
+            display: inline-block;
+        }
+    
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+    
+        .star-rating label {
+            width: 30px;
+            height: 30px;
+            display: inline-block;
+            background: url('/static/star.png') no-repeat center center;
+            background-size: contain; /* Adjust to fit the image size */
+            cursor: pointer;
+        }
+    
+        .star-rating input[type="radio"]:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            background: url('/static/goldstar.png') no-repeat center center;
+            background-size: contain; /* Adjust to fit the image size */
+        }
+    </style>
+    
+    
+    <style>
+        body {
+            font-family: 'Asap', sans-serif;
+            background-color: #0d0c33; /* Dark background color */
+            color: #ececff; /* Light text color */
+        }
+        .card {
+            background-color: #403cff; /* Dark card background color */
+            color: #ffffff; /* Light text color */
+        }
+        .card-title {
+            color: #ffffff; /* Yellow title color */
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #201e80; /* Blue button color */
+            border-color: #201e80; /* Blue button border color */
+            font-weight: bold;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+            border-color: #0056b3; /* Darker blue border on hover */
+        }
+        .event-image {
+            max-width: 100%;
+            height: auto;
+        }
+        .comment-textarea {
+            height: 200px; /* Text kutusunun yüksekliği */
+            width: 100%; /* Text kutusunun genişliği */
+            resize: none; /* Kullanıcının text kutusunu yeniden boyutlandırmasını önler */
+        }
+        .comment-submit {
+            margin-top: 10px; /* Submit butonunun üst boşluğu */
+            font-weight: bold;
+        }
+    </style>
+    <title>Eventli | {% block page_title %}Details{% endblock page_title %}</title>
+</head>
+<body>
+    {% include "partials/_nav.html" %}
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="card-title">{{ etkinlik.title }}</h1>
+                        <p><strong>Date:</strong> {{ etkinlik.date }}</p>
+                        <p><strong>Address:</strong> {{ etkinlik.adress }}</p>
+                        <p><strong>Description:</strong> {{ etkinlik.description }}</p>
+                        <p><strong>Number of Participants:</strong> {{ kayitli_kullanici_sayisi }}</p> 
+                        <p><strong>Event Created By:</strong> {{ etkinlik.user }}</p>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'etkinlik_kayit' etkinlik.slug %}" class="btn btn-primary">Sign Up</a>
+                        {% else %}
+                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">Sign Up</a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Event Creator Information</h5>
+                        <p class="card-text"><strong>Email:</strong> {{ etkinlik.user.email }}</p>
+                        <p class="card-text"><strong>First Name:</strong> {{ etkinlik.user.first_name }}</p>
+                        <p class="card-text"><strong>Last Name:</strong> {{ etkinlik.user.last_name }}</p>
+                    </div>
+                </div>
+                {% if user == etkinlik.user %}
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h2>Participants of {{ etkinlik.title }}</h2>
+                        <ul class="list-group list-group-flush">
+                            {% for katilimci in katilimcilar %}
+                                <li class="list-group-item">
+                                    <div class="row">
+                                        <div class="col-md-3">Username: {{ katilimci.user.username }}</div>
+                                        <div class="col-md-3">Email: {{ katilimci.user.email }}</div>
+                                        <div class="col-md-3">First Name: {{ katilimci.user.first_name }}</div>
+                                        <div class="col-md-3">Last Name: {{ katilimci.user.last_name }}</div>
+                                    </div>
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item">No one has registered yet.</li>
+                            {% endfor %}
+                        </ul>
+                        <form method="post" action="{% url 'delete_event' etkinlik.slug %}" class="mt-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Delete Event</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="{{ etkinlik.image.url }}" class="event-image card-img-top" alt="{{ etkinlik.title }}">
+                </div>
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container-fluid mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Add Comment</h2>
+                        {% if user.is_authenticated %}
+                            <form method="post">
+                                {% csrf_token %}
+                                {{ comment_form.as_p }}
+                                <div class="star-rating">
+                                    <input type="radio" name="rate" id="rate-5" value="5"><label for="rate-5"></label>
+                                    <input type="radio" name="rate" id="rate-4" value="4"><label for="rate-4"></label>
+                                    <input type="radio" name="rate" id="rate-3" value="3"><label for="rate-3"></label>
+                                    <input type="radio" name="rate" id="rate-2" value="2"><label for="rate-2"></label>
+                                    <input type="radio" name="rate" id="rate-1" value="1"><label for="rate-1"></label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </form>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const ratingInputs = document.querySelectorAll('.star-rating input[type="radio"]');
+                                    const hiddenRateInput = document.querySelector('input[name="rate"]');
+                        
+                                    ratingInputs.forEach(input => {
+                                        input.addEventListener('change', function() {
+                                            hiddenRateInput.value = this.value;
+                                        });
+                                    });
+                                });
+                            </script>
+                        {% else %}
+                        <p>Please <a href="{% url 'login' %}?next={{ request.path }}" style="color: red;">log in</a> to add a comment.</p>                          
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container-fluid mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Comments</h2>
+                        {% for comment in comments %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ comment.author.username }}</strong> - {{ comment.created_date|date:"F d, Y" }}
+                                    </div>
+                                    <div>
+                                        {% if user.is_authenticated %}
+                                            {% if user == comment.author %}
+                                                <form method="post" action="{% url 'delete_comment' etkinlik.slug comment.pk %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                </form>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="star-rating">
+                                        {% for i in "54321" %}
+                                            <label style="background: url('{% if i|add:0 <= comment.rate %}/static/goldstar.png{% else %}/static/star.png{% endif %}') no-repeat center center; background-size: contain;"></label>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    
+                                </div>
+                                <p>{{ comment.text }}</p>
+                            </div>
+                        {% empty %}
+                            <p>No comments yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+ 
+    
+<script>
+    var map = L.map('map').setView([38.9637, 35.2433], 6); 
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+
+    var etkinlikEnlem = {{ etkinlik.enlem }};
+    var etkinlikBoylam = {{ etkinlik.boylam }};
+
+    var marker = L.marker([etkinlikEnlem, etkinlikBoylam]).addTo(map)
+        .bindPopup("{{ etkinlik.title }}");
+
+
+    map.setView([etkinlikEnlem, etkinlikBoylam], 12); 
+</script>
+    
+
+</body>
+</html>

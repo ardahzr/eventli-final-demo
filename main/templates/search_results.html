@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/css/bootstrap.min.css"/>
+    <title>Event App | Search Results</title>
+    <style>
+        body {
+            font-family: 'Asap', sans-serif;
+            background-color: #0d0c33; 
+            color: #ececff; 
+        }
+        .card {
+            background-color: #403cff; 
+            color: #ffffff; 
+        }
+        .card-title {
+            color: #ffffff; 
+        }
+        .btn-primary {
+            background-color: #201e80; 
+            border-color: #201e80; 
+        }
+        .btn-primary:hover {
+            background-color: #0056b3; 
+            border-color: #0056b3; 
+        }
+    </style>
+</head>
+<body>
+    {% load static %}
+    <!-- Navbar -->
+    {% include "partials/_nav.html" %}
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Search Results</h1>
+        <p class="mb-4">Showing results for: "{{ query }}"</p>
+        
+        {% if etkinlikler %}
+            <div class="row">
+                {% for etkinlik in etkinlikler %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <img src="{% static etkinlik.image %}" class="card-img-top" alt="{{ etkinlik.title }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ etkinlik.title }}</h5>
+                                <p class="card-text">Date: {{ etkinlik.date }}</p>
+                                <p class="card-text">Description: {{ etkinlik.description }}</p>
+                                <p class="card-text">Address: {{ etkinlik.adress }}</p>
+                                <a href="{% url 'etkinlik_detay' etkinlik.slug %}" class="btn btn-primary">Details</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No results found.</p>
+        {% endif %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/js/bootstrap.min.js"></script>
+</body>
+</html>
